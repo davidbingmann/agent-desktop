@@ -58,7 +58,6 @@ unsafe extern "C" {
     ) -> bool;
     fn agent_desktop_cursor_overlay_idle();
     fn agent_desktop_cursor_overlay_anchor(pid: u32, x: f64, y: f64);
-    fn agent_desktop_cursor_overlay_reanchor();
     fn agent_desktop_cursor_overlay_label_width(label: *const c_char) -> f64;
     fn agent_desktop_cursor_overlay_caret(x: f64, y: f64, width: f64, height: f64);
     fn agent_desktop_cursor_overlay_caret_clear();
@@ -112,21 +111,15 @@ pub(super) fn apply_caret(instruction: &CursorOverlayInstruction, at: Option<&Po
     false
 }
 
-/// Anchors the overlay to the window of the process that owns the target. A
-/// travel names the owner, and a drag or a travel to raw coordinates clears
-/// it. A key press goes to the frontmost app, so the caret that follows one
-/// clears it too. An effect or caret keeps the owner and looks its window up
-/// again, because the action may have closed it or opened a sheet over it.
+/// Anchors the overlay to the window of the process that owns the target,
+/// looked up again for every instruction, because an action can close that
+/// window or open a sheet over it. Each instruction names its own owner, so
+/// none depends on one before it. Raw coordinates, a drag and the caret that
+/// follows a key press name none, and the overlay draws above every window.
 pub(super) fn anchor(instruction: &CursorOverlayInstruction) {
+    let pid = instruction.owner().map_or(0, ProcessId::get);
     let at = instruction.destination();
-    if instruction.moves_cursor() {
-        let pid = instruction.owner().map_or(0, ProcessId::get);
-        unsafe { agent_desktop_cursor_overlay_anchor(pid, at.x, at.y) }
-    } else if instruction.phase() == CursorPhase::CaretFollow {
-        unsafe { agent_desktop_cursor_overlay_anchor(0, at.x, at.y) }
-    } else {
-        unsafe { agent_desktop_cursor_overlay_reanchor() }
-    }
+    unsafe { agent_desktop_cursor_overlay_anchor(pid, at.x, at.y) }
 }
 
 pub(super) fn begin_drag(from: &Point, trail: bool) {

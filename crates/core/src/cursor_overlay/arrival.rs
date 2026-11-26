@@ -1,11 +1,11 @@
 use crate::ProcessId;
 use serde::{Deserialize, Serialize};
 
-/// What a cursor travel shows on arrival and which process owns the window it
-/// lands in. A ref action names the owner, so a renderer can draw the overlay
-/// directly above the target's window and windows in front of the target cover
-/// it. A travel to raw coordinates has none, and the overlay draws above every
-/// window.
+/// What a cursor travel shows on arrival, and which process owns the window an
+/// instruction lands in. Every instruction of a ref action names the owner, so
+/// a renderer can draw the overlay directly above the target's window and
+/// windows in front of the target cover it. Raw coordinates have none, and the
+/// overlay draws above every window.
 #[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct CursorArrival {

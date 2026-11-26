@@ -165,13 +165,15 @@ pub fn execute(
             to.point.clone(),
         );
     } else if delivered {
-        crate::cursor_overlay::submit(
+        crate::cursor_overlay::submit_effect(
             adapter,
             context,
-            to.point.clone(),
-            None,
-            false,
-            crate::CursorPhase::Effect,
+            crate::cursor_overlay::CursorEffect {
+                destination: to.point.clone(),
+                target: None,
+                click: false,
+                owner: None,
+            },
         );
     } else {
         crate::cursor_overlay::cancel_drag(adapter, context);
